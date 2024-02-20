@@ -1,6 +1,6 @@
 //
 //  ChatQuery.swift
-//  
+//
 //
 //  Created by Sergii Kryvoblotskyi on 02/04/2023.
 //
@@ -343,7 +343,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 case name
             }
         }
-        
+
         public struct DeveloperMessageParam: Codable, Equatable {
             public typealias Role = ChatQuery.ChatCompletionMessageParam.Role
 
@@ -661,7 +661,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
             self = .stringList(stringList)
         }
     }
-    
+
     public enum ReasoningEffort: String, Codable, Equatable {
         case low
         case medium
@@ -670,16 +670,16 @@ public struct ChatQuery: Equatable, Codable, Streamable {
 
     // See more https://platform.openai.com/docs/guides/structured-outputs/introduction
     public enum ResponseFormat: Codable, Equatable {
-        
+
         case text
         case jsonObject
         case jsonSchema(name: String, type: StructuredOutput.Type)
-        
+
         enum CodingKeys: String, CodingKey {
             case type
             case jsonSchema = "json_schema"
         }
-        
+
         public func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             switch self {
@@ -693,7 +693,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 try container.encode(schema, forKey: .jsonSchema)
             }
         }
-        
+
         public static func == (lhs: ResponseFormat, rhs: ResponseFormat) -> Bool {
             switch (lhs, rhs) {
             case (.text, .text): return true
@@ -704,27 +704,27 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 return false
             }
         }
-        
+
         /// A formal initializer reqluired for the inherited Decodable conformance.
         /// This type is never returned from the server and is never decoded into.
         public init(from decoder: any Decoder) throws {
             self = .text
         }
     }
-    
+
     private struct JSONSchema: Encodable {
-        
+
         let name: String
         let schema: StructuredOutput
-        
+
         enum CodingKeys: String, CodingKey {
             case name
             case schema
             case strict
         }
-        
+
         init(name: String, schema: StructuredOutput) {
-            
+
             func format(_ name: String) -> String {
                 var formattedName = name.replacingOccurrences(of: " ", with: "_")
                 let regex = try! NSRegularExpression(pattern: "[^a-zA-Z0-9_-]", options: [])
@@ -734,15 +734,15 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 formattedName = String(formattedName.prefix(64))
                 return formattedName
             }
-            
+
             self.name = format(name)
             self.schema = schema
-            
+
             if self.name != name {
                 print("The name was changed to \(self.name) to satisfy the API requirements. See more: https://platform.openai.com/docs/api-reference/chat/create")
             }
         }
-        
+
         public func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(name, forKey: .name)
@@ -750,27 +750,27 @@ public struct ChatQuery: Equatable, Codable, Streamable {
             try container.encode(try PropertyValue(from: schema), forKey: .schema)
         }
     }
-    
+
     private indirect enum PropertyValue: Codable {
-        
+
         enum SimpleType: String, Codable {
             case string, integer, number, boolean
         }
-        
+
         enum ComplexType: String, Codable {
             case object, array, date
         }
-        
+
         enum SpecialType: String, Codable {
             case null
         }
-        
+
         case simple(SimpleType, isOptional: Bool)
         case date(isOptional: Bool)
         case `enum`(cases: [String], isOptional: Bool)
         case object([String: PropertyValue], isOptional: Bool)
         case array(PropertyValue, isOptional: Bool)
-        
+
         enum CodingKeys: String, CodingKey {
             case type
             case description
@@ -780,7 +780,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
             case required
             case `enum`
         }
-        
+
         enum ValueType: String, Codable {
             case string
             case date
@@ -790,10 +790,10 @@ public struct ChatQuery: Equatable, Codable, Streamable {
             case object
             case array
         }
-        
+
         func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            
+
             switch self {
             case .simple(let type, let isOptional):
                 if isOptional {
@@ -834,11 +834,11 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 try container.encode(items, forKey: .items)
             }
         }
-        
+
         init<T: Any>(from value: T) throws {
             let mirror = Mirror(reflecting: value)
             let isOptional = mirror.displayStyle == .optional
-            
+
             switch value {
             case _ as String:
                 self = .simple(.string, isOptional: isOptional)
@@ -856,7 +856,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 self = .date(isOptional: isOptional)
                 return
             default:
-                
+
                 var unwrappedMirror: Mirror!
                 if isOptional {
                     guard let child = mirror.children.first else {
@@ -866,11 +866,11 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 } else {
                     unwrappedMirror = mirror
                 }
-                
+
                 if let displayStyle = unwrappedMirror.displayStyle {
-                    
+
                     switch displayStyle {
-                        
+
                     case .struct, .class:
                         var dict = [String: PropertyValue]()
                         for child in unwrappedMirror.children {
@@ -878,7 +878,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                         }
                         self = .object(dict, isOptional: isOptional)
                         return
-                        
+
                     case .collection:
                         if let child = unwrappedMirror.children.first {
                             self = .array(try Self(from: child.value), isOptional: isOptional)
@@ -886,7 +886,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                         } else {
                             throw StructuredOutputError.typeUnsupported
                         }
-                        
+
                     case .enum:
                         if let structuredEnum = value as? any StructuredOutputEnum {
                             self = .enum(cases: structuredEnum.caseNames, isOptional: isOptional)
@@ -894,7 +894,7 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                         } else {
                             throw StructuredOutputError.enumsConformance
                         }
-                        
+
                     default:
                         throw StructuredOutputError.typeUnsupported
                     }
@@ -902,20 +902,20 @@ public struct ChatQuery: Equatable, Codable, Streamable {
                 throw StructuredOutputError.typeUnsupported
             }
         }
-        
-        
+
+
         /// A formal initializer reqluired for the inherited Decodable conformance.
         /// This type is never returned from the server and is never decoded into.
         init(from decoder: Decoder) throws {
             self = .simple(.boolean, isOptional: false)
         }
     }
-    
+
     public enum StructuredOutputError: LocalizedError {
         case enumsConformance
         case typeUnsupported
         case nilFoundInExample
-        
+
         public var errorDescription: String? {
             switch self {
             case .enumsConformance:
