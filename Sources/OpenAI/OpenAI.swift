@@ -87,8 +87,8 @@ public final class OpenAI: OpenAIProtocol {
         performRequest(request: JSONRequest<ChatResult>(body: query, url: buildURL(path: .chats)), completion: completion)
     }
 
-    public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) {
-        performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: .chats)), onResult: onResult, completion: completion)
+    public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) -> (any CancelableProtocol)? {
+        return performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: .chats)), onResult: onResult, completion: completion)
     }
 
     public func edits(query: EditsQuery, completion: @escaping (Result<EditsResult, Error>) -> Void) {
@@ -122,7 +122,7 @@ public final class OpenAI: OpenAIProtocol {
 }
 
 extension OpenAI {
-    func performRequest<ResultType: Codable>(request: any URLRequestBuildable, completion: @escaping (Result<ResultType, Error>) -> Void) {
+    func performRequest<ResultType: Codable>(request: any URLRequestBuildable, completion: @escaping (Result<ResultType, Error>) -> Void) -> URLSessionDataTask? {
         do {
             let request = try request.build(token: configuration.token,
                                             organizationIdentifier: configuration.organizationIdentifier,
@@ -142,12 +142,16 @@ extension OpenAI {
                 }
             }
             task.resume()
+
+            return task as? URLSessionDataTask
         } catch {
             completion(.failure(error))
         }
+
+        return nil
     }
 
-    func performStreamingRequest<ResultType: Codable>(request: any URLRequestBuildable, onResult: @escaping (Result<ResultType, Error>) -> Void, completion: ((Error?) -> Void)?) {
+    func performStreamingRequest<ResultType: Codable>(request: any URLRequestBuildable, onResult: @escaping (Result<ResultType, Error>) -> Void, completion: ((Error?) -> Void)?) -> (any CancelableProtocol)? {
         do {
             let request = try request.build(token: configuration.token,
                                             organizationIdentifier: configuration.organizationIdentifier,
@@ -165,9 +169,12 @@ extension OpenAI {
             }
             session.perform()
             streamingSessions.append(session)
+            return session
         } catch {
             completion?(error)
         }
+
+        return nil
     }
 
     func performSpeechRequest(request: any URLRequestBuildable, completion: @escaping (Result<AudioSpeechResult, Error>) -> Void) {
