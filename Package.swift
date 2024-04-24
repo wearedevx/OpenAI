@@ -13,17 +13,18 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.8.2")
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.8.2"),
     ],
     targets: [
         .target(
             name: "OpenAI",
             dependencies: [
-                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ]
         ),
         .testTarget(
             name: "OpenAITests",
-            dependencies: ["OpenAI"])
+            dependencies: ["OpenAI"]
+        ),
     ]
 )

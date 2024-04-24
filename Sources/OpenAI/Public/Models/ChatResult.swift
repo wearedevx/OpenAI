@@ -43,7 +43,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
 
     /// Usage statistics for the completion request.
     public let usage: Self.CompletionUsage?
-    
+
     /// Following are fields that are not part of OpenAI API Reference, but are present in responses from other providers
     ///
     /// Perplexity
@@ -62,7 +62,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
         case usage
         case citations
     }
-    
+
     init(id: String, created: Int, model: String, object: String, serviceTier: ServiceTier? = nil, systemFingerprint: String? = nil, choices: [Choice], usage: Self.CompletionUsage? = nil, citations: [String]? = nil) {
         self.id = id
         self.created = created
@@ -74,24 +74,24 @@ public struct ChatResult: Codable, Equatable, Sendable {
         self.usage = usage
         self.citations = citations
     }
-    
+
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let parsingOptions = decoder.userInfo[.parsingOptions] as? ParsingOptions ?? []
-        self.id = try container.decodeString(forKey: .id, parsingOptions: parsingOptions)
-        self.object = try container.decodeString(forKey: .object, parsingOptions: parsingOptions)
-        self.created = try container.decode(Int.self, forKey: .created)
-        self.model = try container.decodeString(forKey: .model, parsingOptions: parsingOptions)
-        self.choices = try container.decode([ChatResult.Choice].self, forKey: .choices)
-        self.serviceTier = try container.decodeIfPresent(ServiceTier.self, forKey: .serviceTier)
-        self.systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
+        id = try container.decodeString(forKey: .id, parsingOptions: parsingOptions)
+        object = try container.decodeString(forKey: .object, parsingOptions: parsingOptions)
+        created = try container.decode(Int.self, forKey: .created)
+        model = try container.decodeString(forKey: .model, parsingOptions: parsingOptions)
+        choices = try container.decode([ChatResult.Choice].self, forKey: .choices)
+        serviceTier = try container.decodeIfPresent(ServiceTier.self, forKey: .serviceTier)
+        systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
         // It seems to be possible that in some cases `usage` may be neither a full object nor `null`
         // For example, whem model's response is not a content, but `refusal`
         // See: https://github.com/MacPaw/OpenAI/issues/338 for more details
-        self.usage = try? container.decodeIfPresent(ChatResult.CompletionUsage.self, forKey: .usage)
-        self.citations = try container.decodeIfPresent([String].self, forKey: .citations)
+        usage = try? container.decodeIfPresent(ChatResult.CompletionUsage.self, forKey: .usage)
+        citations = try container.decodeIfPresent([String].self, forKey: .citations)
     }
-    
+
     public struct Choice: Codable, Equatable, Sendable {
         /// The index of the choice in the list of choices.
         public let index: Int
@@ -101,7 +101,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
         public let message: Self.Message
         /// The reason the model stopped generating tokens. This will be stop if the model hit a natural `stop` point or a provided stop sequence, `length` if the maximum number of tokens specified in the request was reached, `content_filter` if content was omitted due to a flag from our content filters, `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model called a function.
         public let finishReason: String
-        
+
         public struct Message: Codable, Equatable, Sendable {
             /// The contents of the message.
             public let content: String?
@@ -123,23 +123,23 @@ public struct ChatResult: Codable, Equatable, Sendable {
             /// This field is declared not-optional in OpenAI API reference. But it seems that under some conditions it may not be present in a response.
             /// See https://github.com/MacPaw/OpenAI/issues/293
             public let toolCalls: [ChatQuery.ChatCompletionMessageParam.AssistantMessageParam.ToolCallParam]?
-            
+
             /// Following are fields that are not part of OpenAI but are present in responses from other providers
-            
+
             /// Value for `reasoning` field in response.
             ///
             /// Provided by:
             /// - Gemini (in OpenAI compatibility mode)
             ///   https://github.com/MacPaw/OpenAI/issues/283#issuecomment-2711396735
             /// - OpenRouter
-            internal let _reasoning: String?
+            let _reasoning: String?
 
             /// Value for `reasoning_content` field.
             ///
             /// Provided by:
             /// - Deepseek
             ///   https://api-docs.deepseek.com/api/create-chat-completion#responses
-            internal let _reasoningContent: String?
+            let _reasoningContent: String?
 
             /// Reasoning content.
             ///
@@ -155,17 +155,17 @@ public struct ChatResult: Codable, Equatable, Sendable {
                 case _reasoning = "reasoning"
                 case _reasoningContent = "reasoning_content"
             }
-            
+
             public struct Annotation: Codable, Equatable, Sendable {
                 /// The type of the URL citation. Always `url_citation`.
                 let type: String
                 /// A URL citation when using web search.
                 let urlCitation: URLCitation
-                
+
                 public enum CodingKeys: String, CodingKey {
                     case type, urlCitation = "url_citation"
                 }
-                
+
                 public struct URLCitation: Codable, Equatable, Sendable {
                     /// The index of the last character of the URL citation in the message.
                     let endIndex: Int
@@ -175,7 +175,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
                     let title: String
                     /// The URL of the web resource.
                     let url: String
-                    
+
                     public enum CodingKeys: String, CodingKey {
                         case endIndex = "end_index"
                         case startIndex = "start_index"
@@ -183,7 +183,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
                     }
                 }
             }
-            
+
             public struct Audio: Codable, Equatable, Sendable {
                 /// Base64 encoded audio bytes generated by the model, in the format specified in the request.
                 public let data: String
@@ -193,7 +193,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
                 public let id: String
                 /// Transcript of the audio generated by the model.
                 public let transcript: String
-                
+
                 public enum CodingKeys: String, CodingKey {
                     case data
                     case expiresAt = "expires_at"
@@ -209,7 +209,6 @@ public struct ChatResult: Codable, Equatable, Sendable {
             public let refusal: [Self.ChatCompletionTokenLogprob]?
 
             public struct ChatCompletionTokenLogprob: Codable, Equatable, Sendable {
-
                 /// The token.
                 public let token: String
                 /// A list of integers representing the UTF-8 bytes representation of the token.
@@ -224,7 +223,6 @@ public struct ChatResult: Codable, Equatable, Sendable {
                 public let topLogprobs: [TopLogprob]
 
                 public struct TopLogprob: Codable, Equatable, Sendable {
-
                     /// The token.
                     public let token: String
                     /// A list of integers representing the UTF-8 bytes representation of the token.
@@ -252,6 +250,7 @@ public struct ChatResult: Codable, Equatable, Sendable {
 
         public enum FinishReason: String, Codable, Equatable, Sendable {
             case stop
+            case eos
             case length
             case toolCalls = "tool_calls"
             case contentFilter = "content_filter"
@@ -269,19 +268,19 @@ public struct ChatResult: Codable, Equatable, Sendable {
         public let totalTokens: Int
         /// Breakdown of tokens used in the prompt.
         public let promptTokensDetails: PromptTokensDetails?
-        
+
         public struct PromptTokensDetails: Codable, Equatable, Sendable {
             /// Audio input tokens present in the prompt.
             public let audioTokens: Int
             /// Cached tokens present in the prompt.
             public let cachedTokens: Int
-            
+
             enum CodingKeys: String, CodingKey {
                 case audioTokens = "audio_tokens"
                 case cachedTokens = "cached_tokens"
             }
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case completionTokens = "completion_tokens"
             case promptTokens = "prompt_tokens"
@@ -291,9 +290,8 @@ public struct ChatResult: Codable, Equatable, Sendable {
     }
 }
 
-extension ChatQuery.ChatCompletionMessageParam {
-
-    public init(from decoder: Decoder) throws {
+public extension ChatQuery.ChatCompletionMessageParam {
+    init(from decoder: Decoder) throws {
         let messageContainer = try decoder.container(keyedBy: Self.ChatCompletionMessageParam.CodingKeys.self)
         switch try messageContainer.decode(Role.self, forKey: .role) {
         case .system:
@@ -314,10 +312,10 @@ extension ChatQuery.ChatCompletionMessageParam.UserMessageParam.Content {
     enum ContentDecodingError: Error {
         case unableToDecodeNeitherOfPossibleTypes(Decoder, [Error])
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         var errors: [Error] = []
         do {
             let string = try container.decode(String.self)
@@ -326,7 +324,7 @@ extension ChatQuery.ChatCompletionMessageParam.UserMessageParam.Content {
         } catch {
             errors.append(error)
         }
-        
+
         do {
             let contentParts = try container.decode([ChatQuery.ChatCompletionMessageParam.UserMessageParam.Content.ContentPart].self)
             self = .contentParts(contentParts)
@@ -334,7 +332,7 @@ extension ChatQuery.ChatCompletionMessageParam.UserMessageParam.Content {
         } catch {
             errors.append(error)
         }
-        
+
         throw ContentDecodingError.unableToDecodeNeitherOfPossibleTypes(decoder, errors)
     }
 }
