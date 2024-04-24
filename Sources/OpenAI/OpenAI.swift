@@ -261,10 +261,10 @@ extension OpenAI {
             let request = try request.build(configuration: configuration)
 
             let task = session.dataTask(with: request) { data, _, error in
-                if let error = error {
+                if let error {
                     return completion(.failure(error))
                 }
-                guard let data = data else {
+                guard let data else {
                     return completion(.failure(OpenAIError.emptyData))
                 }
 

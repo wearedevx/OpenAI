@@ -8,14 +8,17 @@ let package = Package(
     products: [
         .library(
             name: "OpenAI",
-            targets: ["OpenAI"]),
+            targets: ["OpenAI"]
+        ),
     ],
     targets: [
         .target(
             name: "OpenAI",
-            dependencies: []),
+            dependencies: []
+        ),
         .testTarget(
             name: "OpenAITests",
-            dependencies: ["OpenAI"]),
+            dependencies: ["OpenAI"]
+        ),
     ]
 )
