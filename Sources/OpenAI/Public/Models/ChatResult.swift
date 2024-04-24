@@ -1,6 +1,6 @@
 //
 //  ChatResult.swift
-//  
+//
 //
 //  Created by Sergii Kryvoblotskyi on 02/04/2023.
 //
@@ -8,7 +8,6 @@
 import Foundation
 
 public struct ChatResult: Codable, Equatable {
-
     public struct Choice: Codable, Equatable {
         public typealias ChatCompletionMessage = ChatQuery.ChatCompletionMessageParam
 
@@ -22,11 +21,9 @@ public struct ChatResult: Codable, Equatable {
         public let finishReason: String?
 
         public struct ChoiceLogprobs: Codable, Equatable {
-
             public let content: [Self.ChatCompletionTokenLogprob]?
 
             public struct ChatCompletionTokenLogprob: Codable, Equatable {
-
                 /// The token.
                 public let token: String
                 /// A list of integers representing the UTF-8 bytes representation of the token.
@@ -41,7 +38,6 @@ public struct ChatResult: Codable, Equatable {
                 public let topLogprobs: [TopLogprob]
 
                 public struct TopLogprob: Codable, Equatable {
-
                     /// The token.
                     public let token: String
                     /// A list of integers representing the UTF-8 bytes representation of the token.
@@ -69,6 +65,7 @@ public struct ChatResult: Codable, Equatable {
 
         public enum FinishReason: String, Codable, Equatable {
             case stop
+            case eos
             case length
             case toolCalls = "tool_calls"
             case contentFilter = "content_filter"
@@ -77,7 +74,6 @@ public struct ChatResult: Codable, Equatable {
     }
 
     public struct CompletionUsage: Codable, Equatable {
-
         /// Number of tokens in the generated completion.
         public let completionTokens: Int
         /// Number of tokens in the prompt.
@@ -119,9 +115,8 @@ public struct ChatResult: Codable, Equatable {
     }
 }
 
-extension ChatQuery.ChatCompletionMessageParam {
-
-    public init(from decoder: Decoder) throws {
+public extension ChatQuery.ChatCompletionMessageParam {
+    init(from decoder: Decoder) throws {
         let messageContainer = try decoder.container(keyedBy: Self.ChatCompletionMessageParam.CodingKeys.self)
         switch try messageContainer.decode(Role.self, forKey: .role) {
         case .system:
@@ -136,8 +131,8 @@ extension ChatQuery.ChatCompletionMessageParam {
     }
 }
 
-extension ChatQuery.ChatCompletionMessageParam.ChatCompletionUserMessageParam.Content {
-    public init(from decoder: Decoder) throws {
+public extension ChatQuery.ChatCompletionMessageParam.ChatCompletionUserMessageParam.Content {
+    init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         do {
             let string = try container.decode(String.self)
