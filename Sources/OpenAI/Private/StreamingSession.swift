@@ -63,11 +63,14 @@ extension StreamingSession {
         if stringContent.isEmpty {
             return
         }
-        let jsonObjects = "\(previousChunkBuffer)\(stringContent)"
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .components(separatedBy: "data:")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { $0.isEmpty == false }
+        
+        // Remove first charaters: "data: ", then split on all "\ndata: ".
+        let jsonObjects =
+            String(stringContent.dropFirst(5)).trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .components(separatedBy: "\ndata: ")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { $0.isEmpty == false }
 
         previousChunkBuffer = ""
 
