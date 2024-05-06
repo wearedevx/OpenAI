@@ -63,12 +63,14 @@ extension StreamingSession {
         if stringContent.isEmpty {
             return
         }
-        // NOTE: if the json content includes data: this causes a problem. i've fixed it by preprending a newline character to the previousChunkBuffer, since all except the first chunk have two newlines anyway. not perfect, but it will help
-        let jsonObjects = "\n\(previousChunkBuffer)\(stringContent)"
-            // .trimmingCharacters(in: .whitespacesAndNewlines)
-            .components(separatedBy: "\ndata:")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { $0.isEmpty == false }
+
+        // Remove first charaters: "data: ", then split on all "\ndata: ".
+        let jsonObjects =
+            String(stringContent.dropFirst(5)).trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .components(separatedBy: "\ndata: ")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { $0.isEmpty == false }
 
         previousChunkBuffer = ""
 
