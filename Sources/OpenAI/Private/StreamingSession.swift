@@ -64,12 +64,12 @@ extension StreamingSession {
             return
         }
 
-        var fullMessage = ""
+        var fullMessage = stringContent
 
         if previousChunkBuffer != "" {
             fullMessage = String("\(previousChunkBuffer)\(stringContent)")
             previousChunkBuffer = ""
-        } else {
+        } else if stringContent.hasPrefix("data:") {
             fullMessage = String("\(stringContent.dropFirst(5))")
         }
 
