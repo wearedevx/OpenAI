@@ -64,15 +64,22 @@ extension StreamingSession {
             return
         }
 
+        var fullMessage = ""
+
+        if previousChunkBuffer != "" {
+            fullMessage = String("\(previousChunkBuffer)\(stringContent)")
+            previousChunkBuffer = ""
+        } else {
+            fullMessage = String("\(stringContent.dropFirst(5))")
+        }
+
         // Remove first charaters: "data: ", then split on all "\ndata: ".
         let jsonObjects =
-            String(stringContent.dropFirst(5)).trimmingCharacters(in: .whitespacesAndNewlines)
+            fullMessage.trimmingCharacters(in: .whitespacesAndNewlines)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .components(separatedBy: "\ndata: ")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { $0.isEmpty == false }
-
-        previousChunkBuffer = ""
 
         guard jsonObjects.isEmpty == false, jsonObjects.first != streamingCompletionMarker else {
             return
@@ -93,7 +100,10 @@ extension StreamingSession {
                 if let decoded = try? decoder.decode(APIErrorResponse.self, from: jsonData) {
                     onProcessingError?(self, decoded)
                 } else if index == jsonObjects.count - 1 {
-                    previousChunkBuffer = "data: \(jsonContent)" // Chunk ends in a partial JSON
+                    // Save this message if it's not the last one, so it can be added to the next message.
+                    if jsonContent != "[[DONE]]" {
+                        previousChunkBuffer = "\(jsonContent)"
+                    }
                 } else {
                     onProcessingError?(self, error)
                 }
