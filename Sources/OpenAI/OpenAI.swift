@@ -88,7 +88,7 @@ public final class OpenAI: OpenAIProtocol {
     }
 
     public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) -> (any CancelableProtocol)? {
-        return performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: .chats)), onResult: onResult, completion: completion)
+        performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: .chats)), onResult: onResult, completion: completion)
     }
 
     public func edits(query: EditsQuery, completion: @escaping (Result<EditsResult, Error>) -> Void) {
@@ -128,10 +128,10 @@ extension OpenAI {
                                             organizationIdentifier: configuration.organizationIdentifier,
                                             timeoutInterval: configuration.timeoutInterval)
             let task = session.dataTask(with: request) { data, _, error in
-                if let error = error {
+                if let error {
                     return completion(.failure(error))
                 }
-                guard let data = data else {
+                guard let data else {
                     return completion(.failure(OpenAIError.emptyData))
                 }
                 let decoder = JSONDecoder()
@@ -184,10 +184,10 @@ extension OpenAI {
                                             timeoutInterval: configuration.timeoutInterval)
 
             let task = session.dataTask(with: request) { data, _, error in
-                if let error = error {
+                if let error {
                     return completion(.failure(error))
                 }
-                guard let data = data else {
+                guard let data else {
                     return completion(.failure(OpenAIError.emptyData))
                 }
 
@@ -203,11 +203,34 @@ extension OpenAI {
 extension OpenAI {
     func buildURL(path: String) -> URL {
         var components = URLComponents()
-        components.scheme = configuration.scheme
-        components.host = configuration.host
-        components.port = configuration.port
-        components.path = configuration.prefix + path
-        return components.url!
+
+        if let url = URL(string: configuration.host), let scheme = url.scheme {
+            components.scheme = scheme
+            components.host = url.host
+            components.port = url.port
+            components.path = path
+        } else {
+            components.scheme = "https"
+
+            // Check if host contains a path component
+            let hostParts = configuration.host.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)
+            if hostParts.count > 1 {
+                // Host contains a path component
+                components.host = String(hostParts[0])
+                let hostPath = "/" + hostParts[1]
+                components.path = hostPath + path
+            } else {
+                // Host does not contain a path component
+                components.host = configuration.host
+                components.path = path
+            }
+        }
+
+        guard let url = components.url else {
+            fatalError("Unable to construct URL from components.")
+        }
+
+        return url
     }
 }
 
