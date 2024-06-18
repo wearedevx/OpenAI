@@ -221,56 +221,48 @@ public struct ChatStreamResult: Codable, Equatable, Sendable {
         case serviceTier = "service_tier"
     }
 
-    public init(from decoder: Decoder) {
+    public init(from decoder: Decoder) throws {
         let id: String
         let object: String
         let created: TimeInterval
         let model: String?
         let choices: [Choice]
         let systemFingerprint: String?
-        do {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
+        let usage: ChatResult.CompletionUsage?
+        let serviceTier: ServiceTier?
 
-            // Decode required fields
-            id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
-            object = try container.decodeIfPresent(String.self, forKey: .object) ?? "chat.completion.chunk"
-            created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
+        let container = try decoder.container(keyedBy: CodingKeys.self)
 
-            // Decode optional fields
-            model = try container.decodeIfPresent(String.self, forKey: .model)
-            systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
+        id = try container.decode(String.self, forKey: .id)
+        object = try container.decode(String.self, forKey: .object)
 
-            // Decode choices array, handling potential errors
-            if let choicesArray = try? container.decode([Choice].self, forKey: .choices) {
-                choices = choicesArray
-            } else if let singleChoice = try? container.decode(Choice.self, forKey: .choices) {
-                choices = [singleChoice]
-            } else {
-                choices = []
-            }
-            self.id = id
-            self.object = object
-            self.created = created
-            self.model = model
-            self.choices = choices
-            self.systemFingerprint = systemFingerprint
-            // Even though API Reference declares that usage field should be either informative or null: https://platform.openai.com/docs/api-reference/chat/create#chat-create-stream_options
-            // In some cases it can be present, but empty: https://github.com/MacPaw/OpenAI/issues/338
-            //
-            // To make things simpler, we're not going to check the correctnes of payload before trying to decode
-            // We're just going to ignore all the errors here by using optional try and fallback to nil `usage`
-            usage = try? container.decodeIfPresent(ChatResult.CompletionUsage.self, forKey: .usage)
-            serviceTier = try container.decodeIfPresent(ServiceTier.self, forKey: .serviceTier)
-        } catch {
-            self.id = ""
-            self.object = "chat.completion.chunk"
-            self.created = 0
-            self.model = nil
-            self.choices = []
-            self.systemFingerprint = nil
-            self.usage = nil
-            self.serviceTier = nil
+        // Decode required fields
+        created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
+
+        // Decode optional fields
+        model = try container.decodeIfPresent(String.self, forKey: .model)
+        systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
+
+        usage = try container.decodeIfPresent(ChatResult.CompletionUsage.self, forKey: .usage)
+        serviceTier = try container.decodeIfPresent(ServiceTier.self, forKey: .serviceTier)
+
+        // Decode choices array, handling potential errors
+        if let choicesArray = try? container.decode([Choice].self, forKey: .choices) {
+            choices = choicesArray
+        } else if let singleChoice = try? container.decode(Choice.self, forKey: .choices) {
+            choices = [singleChoice]
+        } else {
+            choices = []
         }
+        self.id = id
+        self.object = object
+        self.created = created
+        self.model = model
+        self.choices = choices
+        self.systemFingerprint = systemFingerprint
+        self.usage = usage
+        self.serviceTier = serviceTier
+
         self.citations = []
     }
 }

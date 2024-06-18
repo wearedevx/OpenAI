@@ -9,7 +9,6 @@ import Foundation
 
 /// A list of model objects.
 public struct ModelsResult: Codable, Equatable, Sendable {
-
     /// A list of model objects.
     public let data: [ModelResult]
     /// The object type, which is always `list`
@@ -23,7 +22,7 @@ public struct ModelsResult: Codable, Equatable, Sendable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let parsingOptions = decoder.userInfo[.parsingOptions] as? ParsingOptions ?? []
-        self.data = try container.decode([ModelResult].self, forKey: .data)
-        self.object = try container.decode(String.self, forKey: .object, parsingOptions: parsingOptions, defaultValue: "list")
+        data = try container.decode([ModelResult].self, forKey: .data)
+        object = try container.decode(String.self, forKey: .object, parsingOptions: parsingOptions, defaultValue: "list")
     }
 }

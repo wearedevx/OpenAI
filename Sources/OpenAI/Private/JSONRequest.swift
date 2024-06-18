@@ -1,17 +1,17 @@
 //
 //  JSONRequest.swift
-//  
+//
 //
 //  Created by Sergii Kryvoblotskyi on 12/19/22.
 //
 
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 final class JSONRequest<ResultType> {
-    
+
     let body: (Codable & Sendable)?
     let url: URL
     let method: String
@@ -32,7 +32,7 @@ extension JSONRequest: URLRequestBuildable {
     ) throws -> URLRequest {
         var request = URLRequest(url: url, timeoutInterval: timeoutInterval)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         if let token {        
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -40,11 +40,11 @@ extension JSONRequest: URLRequestBuildable {
         if let organizationIdentifier {
             request.setValue(organizationIdentifier, forHTTPHeaderField: "OpenAI-Organization")
         }
-        
+
         for (headerField, value) in customHeaders {
             request.setValue(value, forHTTPHeaderField: headerField)
         }
-        
+
         request.httpMethod = method
         if let body = body {
             request.httpBody = try JSONEncoder().encode(body)
