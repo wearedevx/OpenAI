@@ -1,18 +1,17 @@
 //
-//  File.swift
-//  
+//  URLRequestBuildable.swift
+//
 //
 //  Created by Sergii Kryvoblotskyi on 02/04/2023.
 //
 
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 protocol URLRequestBuildable {
-    
     associatedtype ResultType
-    
-    func build(token: String, organizationIdentifier: String?, timeoutInterval: TimeInterval) throws -> URLRequest
+
+    func build(token: String, organizationIdentifier: String?, appName: String?, siteURL: String?, timeoutInterval: TimeInterval) throws -> URLRequest
 }
