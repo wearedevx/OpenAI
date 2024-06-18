@@ -12,16 +12,27 @@ public struct ModelResult: Codable, Equatable {
     /// The model identifier, which can be referenced in the API endpoints.
     public let id: String
     /// The Unix timestamp (in seconds) when the model was created.
-    public var created: TimeInterval?
+    public let created: TimeInterval?
     /// The object type, which is always "model".
-    public var object: String = "model"
+    public let object: String
     /// The organization that owns the model.
-    public var ownedBy: String = "-"
+    public let ownedBy: String
 
     public enum CodingKeys: String, CodingKey {
         case id
         case created
         case object
         case ownedBy = "owned_by"
+    }
+}
+
+public extension ModelResult {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(String.self, forKey: .id)
+        created = try container.decodeIfPresent(TimeInterval.self, forKey: .created)
+        object = try container.decodeIfPresent(String.self, forKey: .object) ?? "model"
+        ownedBy = try container.decodeIfPresent(String.self, forKey: .ownedBy) ?? ""
     }
 }
