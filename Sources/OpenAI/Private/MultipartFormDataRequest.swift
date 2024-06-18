@@ -1,21 +1,20 @@
 //
 //  MultipartFormDataRequest.swift
-//  
+//
 //
 //  Created by Sergii Kryvoblotskyi on 02/04/2023.
 //
 
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 final class MultipartFormDataRequest<ResultType> {
-    
     let body: MultipartFormDataBodyEncodable
     let url: URL
     let method: String
-        
+
     init(body: MultipartFormDataBodyEncodable, url: URL, method: String = "POST") {
         self.body = body
         self.url = url
@@ -24,8 +23,7 @@ final class MultipartFormDataRequest<ResultType> {
 }
 
 extension MultipartFormDataRequest: URLRequestBuildable {
-    
-    func build(token: String, organizationIdentifier: String?, timeoutInterval: TimeInterval) throws -> URLRequest {
+    func build(token: String, organizationIdentifier: String? = nil, appName: String? = nil, siteURL: String? = nil, timeoutInterval: TimeInterval) throws -> URLRequest {
         var request = URLRequest(url: url)
         let boundary: String = UUID().uuidString
         request.timeoutInterval = timeoutInterval
@@ -35,6 +33,15 @@ extension MultipartFormDataRequest: URLRequestBuildable {
         if let organizationIdentifier {
             request.setValue(organizationIdentifier, forHTTPHeaderField: "OpenAI-Organization")
         }
+
+        if let appName {
+            request.setValue(appName, forHTTPHeaderField: "X-Title")
+        }
+
+        if let siteURL {
+            request.setValue(siteURL, forHTTPHeaderField: "HTTP-Referer")
+        }
+
         request.httpBody = body.encode(boundary: boundary)
         return request
     }
