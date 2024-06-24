@@ -838,12 +838,14 @@ public struct ChatQuery: Equatable, Codable, Streamable {
         /// A list of booleans indicating whether to show files from the request. If not included the api will default to showing all files.
         let show_files_to_user: [Bool]?
         let regenerate_from_message_id: UUID?
+        let branch_from_message_id: UUID?
 
-        public init(chat_id: UUID, user_message_id: UUID, show_files_to_user: [Bool]? = nil, regenerate_from_message_id: UUID? = nil) {
+        public init(chat_id: UUID, user_message_id: UUID, show_files_to_user: [Bool]? = nil, regenerate_from_message_id: UUID? = nil, branch_from_message_id: UUID? = nil) {
             self.chat_id = chat_id
             self.user_message_id = user_message_id
             self.show_files_to_user = show_files_to_user
             self.regenerate_from_message_id = regenerate_from_message_id
+            self.branch_from_message_id = branch_from_message_id
         }
     }
 
