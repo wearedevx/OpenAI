@@ -20,14 +20,17 @@ public final class OpenAI: OpenAIProtocol {
 
         /// API host. Set this property if you use some kind of proxy or your own server. Default is api.openai.com
         public let host: String
-
+        public let port: Int
+        public let scheme: String
         /// Default request timeout
         public let timeoutInterval: TimeInterval
-
-        public init(token: String, organizationIdentifier: String? = nil, host: String = "api.openai.com", timeoutInterval: TimeInterval = 60.0) {
+        
+        public init(token: String, organizationIdentifier: String? = nil, host: String = "api.openai.com", port: Int = 443, scheme: String = "https", timeoutInterval: TimeInterval = 60.0) {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
             self.host = host
+            self.port = port
+            self.scheme = scheme
             self.timeoutInterval = timeoutInterval
         }
     }
@@ -191,41 +194,11 @@ extension OpenAI {
 extension OpenAI {
     func buildURL(path: String) -> URL {
         var components = URLComponents()
-
-        // Default scheme
-        components.scheme = "https"
-
-        // Extract scheme if present
-        var hostString = configuration.host
-        if hostString.hasPrefix("http://") {
-            components.scheme = "http"
-            hostString = String(hostString.dropFirst("http://".count))
-        } else if hostString.hasPrefix("https://") {
-            components.scheme = "https"
-            hostString = String(hostString.dropFirst("https://".count))
-        }
-
-        // Extract the host and optional port from the configuration host
-        let hostParts = hostString.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)
-        let hostPortParts = hostParts[0].split(separator: ":", maxSplits: 1, omittingEmptySubsequences: true)
-
-        components.host = String(hostPortParts[0])
-
-        if hostPortParts.count > 1, let port = Int(hostPortParts[1]) {
-            components.port = port
-        }
-
-        if hostParts.count > 1 {
-            components.path = "/\(hostParts[1])" + path
-        } else {
-            components.path = path
-        }
-
-        guard let url = components.url else {
-            fatalError("Unable to construct URL from components.")
-        }
-
-        return url
+        components.scheme = configuration.scheme
+        components.host = configuration.host
+        components.port = configuration.port
+        components.path = path
+        return components.url!
     }
 }
 
