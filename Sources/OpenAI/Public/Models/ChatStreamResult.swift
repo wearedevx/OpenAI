@@ -136,4 +136,47 @@ public struct ChatStreamResult: Codable, Equatable {
         case choices
         case systemFingerprint = "system_fingerprint"
     }
+
+    public init(from decoder: Decoder) {
+        let id: String
+        let object: String
+        let created: TimeInterval
+        let model: String?
+        let choices: [Choice]
+        let systemFingerprint: String?
+        do {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            // Decode required fields
+            id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
+            object = try container.decodeIfPresent(String.self, forKey: .object) ?? "chat.completion.chunk"
+            created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
+
+            // Decode optional fields
+            model = try container.decodeIfPresent(String.self, forKey: .model)
+            systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
+
+            // Decode choices array, handling potential errors
+            if let choicesArray = try? container.decode([Choice].self, forKey: .choices) {
+                choices = choicesArray
+            } else if let singleChoice = try? container.decode(Choice.self, forKey: .choices) {
+                choices = [singleChoice]
+            } else {
+                choices = []
+            }
+            self.id = id
+            self.object = object
+            self.created = created
+            self.model = model
+            self.choices = choices
+            self.systemFingerprint = systemFingerprint
+        } catch {
+            self.id = ""
+            self.object = "chat.completion.chunk"
+            self.created = 0
+            self.model = nil
+            self.choices = []
+            self.systemFingerprint = nil
+        }
+    }
 }
