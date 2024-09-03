@@ -31,16 +31,16 @@ public final class OpenAI: OpenAIProtocol {
         /// Default request timeout
         public let timeoutInterval: TimeInterval
 
-        public init(token: String, organizationIdentifier: String? = nil, appName: String? = nil, siteURL: String? = nil, host: String = "api.openai.com", timeoutInterval: TimeInterval = 60.0) {
+        public init(token: String, organizationIdentifier: String? = nil, appName: String? = nil, siteURL: String? = nil, host: String = "api.openai.com", port: Int = 443, scheme: String = "https", timeoutInterval: TimeInterval = 60.0, prefix: String = "") {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
             self.appName = appName
             self.siteURL = siteURL
             self.host = host
-            port = port
-            scheme = scheme
+            self.port = port
+            self.scheme = scheme
             self.timeoutInterval = timeoutInterval
-            prefix = prefix
+            self.prefix = prefix
         }
     }
 
