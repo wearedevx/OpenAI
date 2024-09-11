@@ -148,8 +148,8 @@ public struct ChatStreamResult: Codable, Equatable {
             let container = try decoder.container(keyedBy: CodingKeys.self)
 
             // Decode required fields
-            id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
-            object = try container.decodeIfPresent(String.self, forKey: .object) ?? "chat.completion.chunk"
+            id = try container.decode(String.self, forKey: .id)
+            object = try container.decode(String.self, forKey: .object)
             created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
 
             // Decode optional fields
