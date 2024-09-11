@@ -137,7 +137,7 @@ public struct ChatStreamResult: Codable, Equatable {
         case systemFingerprint = "system_fingerprint"
     }
 
-    public init(from decoder: Decoder) {
+    public init(from decoder: Decoder) throws {
         let id: String
         let object: String
         let created: TimeInterval
@@ -145,36 +145,30 @@ public struct ChatStreamResult: Codable, Equatable {
         let choices: [Choice]
         let systemFingerprint: String?
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
         id = try container.decode(String.self, forKey: .id)
         object = try container.decode(String.self, forKey: .object)
 
-        do {
-            // Decode required fields
-            created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
+        // Decode required fields
+        created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
 
-            // Decode optional fields
-            model = try container.decodeIfPresent(String.self, forKey: .model)
-            systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
+        // Decode optional fields
+        model = try container.decodeIfPresent(String.self, forKey: .model)
+        systemFingerprint = try container.decodeIfPresent(String.self, forKey: .systemFingerprint)
 
-            // Decode choices array, handling potential errors
-            if let choicesArray = try? container.decode([Choice].self, forKey: .choices) {
-                choices = choicesArray
-            } else if let singleChoice = try? container.decode(Choice.self, forKey: .choices) {
-                choices = [singleChoice]
-            } else {
-                choices = []
-            }
-            self.id = id
-            self.object = object
-            self.created = created
-            self.model = model
-            self.choices = choices
-            self.systemFingerprint = systemFingerprint
-        } catch {
-            self.created = 0
-            self.model = nil
-            self.choices = []
-            self.systemFingerprint = nil
+        // Decode choices array, handling potential errors
+        if let choicesArray = try? container.decode([Choice].self, forKey: .choices) {
+            choices = choicesArray
+        } else if let singleChoice = try? container.decode(Choice.self, forKey: .choices) {
+            choices = [singleChoice]
+        } else {
+            choices = []
         }
+        self.id = id
+        self.object = object
+        self.created = created
+        self.model = model
+        self.choices = choices
+        self.systemFingerprint = systemFingerprint
     }
 }
