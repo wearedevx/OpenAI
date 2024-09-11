@@ -144,12 +144,12 @@ public struct ChatStreamResult: Codable, Equatable {
         let model: String?
         let choices: [Choice]
         let systemFingerprint: String?
-        do {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        object = try container.decode(String.self, forKey: .object)
 
+        do {
             // Decode required fields
-            id = try container.decode(String.self, forKey: .id)
-            object = try container.decode(String.self, forKey: .object)
             created = try container.decodeIfPresent(TimeInterval.self, forKey: .created) ?? 0
 
             // Decode optional fields
@@ -171,8 +171,6 @@ public struct ChatStreamResult: Codable, Equatable {
             self.choices = choices
             self.systemFingerprint = systemFingerprint
         } catch {
-            self.id = ""
-            self.object = "chat.completion.chunk"
             self.created = 0
             self.model = nil
             self.choices = []
