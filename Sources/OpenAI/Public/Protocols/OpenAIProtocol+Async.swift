@@ -5,6 +5,7 @@
 //  Created by Maxime Maheo on 10/02/2023.
 //
 
+import Combine
 import Foundation
 
 @available(iOS 13.0, *)
@@ -15,16 +16,11 @@ public extension OpenAIProtocol {
     func completions(
         query: CompletionsQuery
     ) async throws -> CompletionsResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<CompletionsResult, Error> { promise in
             completions(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func completionsStream(
@@ -102,16 +98,11 @@ public extension OpenAIProtocol {
     func chats(
         query: ChatQuery
     ) async throws -> ChatResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ChatResult, Error> { promise in
             chats(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func chatsStream(
@@ -157,16 +148,11 @@ public extension OpenAIProtocol {
     }
 
     func models() async throws -> ModelsResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ModelsResult, Error> { promise in
             models { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func moderations(
