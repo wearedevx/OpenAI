@@ -9,7 +9,7 @@ import Combine
 import Foundation
 
 @available(iOS 13.0, *)
-@available(macOS 10.15, *)
+@available(macOS 12, *)
 @available(tvOS 13.0, *)
 @available(watchOS 6.0, *)
 public extension OpenAIProtocol {
@@ -38,61 +38,41 @@ public extension OpenAIProtocol {
     func images(
         query: ImagesQuery
     ) async throws -> ImagesResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ImagesResult, Error> { promise in
             images(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func imageEdits(
         query: ImageEditsQuery
     ) async throws -> ImagesResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ImagesResult, Error> { promise in
             imageEdits(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func imageVariations(
         query: ImageVariationsQuery
     ) async throws -> ImagesResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ImagesResult, Error> { promise in
             imageVariations(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func embeddings(
         query: EmbeddingsQuery
     ) async throws -> EmbeddingsResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<EmbeddingsResult, Error> { promise in
             embeddings(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func chats(
@@ -120,31 +100,21 @@ public extension OpenAIProtocol {
     func edits(
         query: EditsQuery
     ) async throws -> EditsResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<EditsResult, Error> { promise in
             edits(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func model(
         query: ModelQuery
     ) async throws -> ModelResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ModelResult, Error> { promise in
             model(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func models() async throws -> ModelsResult {
@@ -158,60 +128,40 @@ public extension OpenAIProtocol {
     func moderations(
         query: ModerationsQuery
     ) async throws -> ModerationsResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<ModerationsResult, Error> { promise in
             moderations(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func audioCreateSpeech(
         query: AudioSpeechQuery
     ) async throws -> AudioSpeechResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<AudioSpeechResult, Error> { promise in
             audioCreateSpeech(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func audioTranscriptions(
         query: AudioTranscriptionQuery
     ) async throws -> AudioTranscriptionResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<AudioTranscriptionResult, Error> { promise in
             audioTranscriptions(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 
     func audioTranslations(
         query: AudioTranslationQuery
     ) async throws -> AudioTranslationResult {
-        try await withCheckedThrowingContinuation { continuation in
+        try await (Future<AudioTranslationResult, Error> { promise in
             audioTranslations(query: query) { result in
-                switch result {
-                case let .success(success):
-                    return continuation.resume(returning: success)
-                case let .failure(failure):
-                    return continuation.resume(throwing: failure)
-                }
+                promise(result)
             }
-        }
+        }).value
     }
 }
