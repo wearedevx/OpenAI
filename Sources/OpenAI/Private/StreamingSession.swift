@@ -104,7 +104,10 @@ extension StreamingSession {
                     if jsonContent != "[[DONE]]" {
                         previousChunkBuffer = "\(jsonContent)"
                     }
-                } else if jsonContent.contains("OPENROUTER") {
+                } else {
+                    if jsonContent.starts(with: ": OPENROUTER PROCESSING") {
+                        return
+                    }
                     onProcessingError?(self, error)
                 }
             }
