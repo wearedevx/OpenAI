@@ -60,11 +60,13 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
 
 extension StreamingSession {
     private func processJSON(from stringContent: String) {
-        if stringContent.isEmpty {
-            return
-        }
+        var stringContent = stringContent
 
         if stringContent.starts(with: ": OPENROUTER PROCESSING") {
+            stringContent = "\(stringContent.dropFirst(": OPENROUTER PROCESSING".count))".trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if stringContent.isEmpty {
             return
         }
 
