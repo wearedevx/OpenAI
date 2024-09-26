@@ -48,7 +48,13 @@ public struct APIError: Error, Decodable, Equatable {
 
         type = try container.decodeIfPresent(String.self, forKey: .type)
         param = try container.decodeIfPresent(String.self, forKey: .param)
-        code = try container.decodeIfPresent(String.self, forKey: .code)
+        if let code = try? container.decodeIfPresent(Int.self, forKey: .code) {
+            self.code = String(code)
+        } else if let code = try? container.decodeIfPresent(String.self, forKey: .code) {
+            self.code = code
+        } else {
+            code = nil
+        }
     }
 }
 
