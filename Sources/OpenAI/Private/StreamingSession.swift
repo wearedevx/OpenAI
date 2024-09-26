@@ -64,6 +64,10 @@ extension StreamingSession {
             return
         }
 
+        if stringContent.starts(with: ": OPENROUTER PROCESSING") {
+            return
+        }
+
         var fullMessage = stringContent
 
         if previousChunkBuffer != "" {
@@ -105,9 +109,6 @@ extension StreamingSession {
                         previousChunkBuffer = "\(jsonContent)"
                     }
                 } else {
-                    if jsonContent.starts(with: ": OPENROUTER PROCESSING") {
-                        return
-                    }
                     onProcessingError?(self, error)
                 }
             }
