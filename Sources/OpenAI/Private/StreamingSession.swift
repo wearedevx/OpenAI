@@ -68,7 +68,8 @@ extension StreamingSession {
 
         // Drop the SSE Comments if any
         while let match = stringContent.firstMatch(of: SSECommentRegex) {
-            stringContent = "\(stringContent.dropFirst(match.count))".trimmingCharacters(in: .whitespacesAndNewlines)
+            stringContent.removeSubrange(match.range)
+            stringContent = stringContent.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         if stringContent.isEmpty {
