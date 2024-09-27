@@ -67,7 +67,7 @@ extension StreamingSession {
         var stringContent = stringContent
 
         // Drop the SSE Comments if any
-        if let match = stringContent.firstMatch(of: SSECommentRegex) {
+        while let match = stringContent.firstMatch(of: SSECommentRegex) {
             stringContent = "\(stringContent.dropFirst(match.count))".trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
