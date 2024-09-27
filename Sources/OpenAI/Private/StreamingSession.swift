@@ -60,17 +60,23 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
 
 // Regex to detect SSE comments
 // @see: https://html.spec.whatwg.org/multipage/server-sent-events.html#authoring-notes
-private var SSECommentRegex: Regex = try! Regex("^:[\\w\\d ]+\\n")
+private var SSECommentRegex: Regex = try! Regex("^:[\\w\\d ]+")
 
 extension StreamingSession {
     private func processJSON(from stringContent: String) {
         var stringContent = stringContent
 
-        // Drop the SSE Comments if any
-        while let match = stringContent.firstMatch(of: SSECommentRegex) {
-            stringContent.removeSubrange(match.range)
-            stringContent = stringContent.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        stringContent = stringContent.split(separator: "\n")
+            .compactMap {
+                var line = String($0)
+                // Drop the SSE Comments if any
+                while let match = line.firstMatch(of: SSECommentRegex) {
+                    line.removeSubrange(match.range)
+                    line = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                return !line.isEmpty ? line : nil
+            }
+            .joined(separator: "\n")
 
         if stringContent.isEmpty {
             return
