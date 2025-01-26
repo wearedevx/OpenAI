@@ -129,13 +129,13 @@ public final class OpenAI: OpenAIProtocol {
         performRequest(request: JSONRequest<ChatResult>(body: query, url: url), completion: completion)
     }
 
-    public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) -> (any CancelableProtocol)? {
+    public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) {
         guard let url = buildURL(path: .chats) else {
             completion?(OpenAIError.invalidURL)
-            return nil
+            return
         }
 
-        return performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: url), onResult: onResult, completion: completion)
+        performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: url), onResult: onResult, completion: completion)
     }
 
     public func edits(query: EditsQuery, completion: @escaping (Result<EditsResult, Error>) -> Void) {
@@ -234,7 +234,7 @@ extension OpenAI {
         return nil
     }
 
-    func performStreamingRequest<ResultType: Codable>(request: any URLRequestBuildable, onResult: @escaping (Result<ResultType, Error>) -> Void, completion: ((Error?) -> Void)?) -> (any CancelableProtocol)? {
+    func performStreamingRequest<ResultType: Codable>(request: any URLRequestBuildable, onResult: @escaping (Result<ResultType, Error>) -> Void, completion: ((Error?) -> Void)?) {
         do {
             let request = try request.build(token: configuration.token,
                                             organizationIdentifier: configuration.organizationIdentifier,
@@ -254,12 +254,10 @@ extension OpenAI {
             }
             session.perform()
             streamingSessions.append(session)
-            return session
+            return
         } catch {
             completion?(error)
         }
-
-        return nil
     }
 
     func performSpeechRequest(request: any URLRequestBuildable, completion: @escaping (Result<AudioSpeechResult, Error>) -> Void) {
