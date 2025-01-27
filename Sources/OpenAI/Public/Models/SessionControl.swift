@@ -10,13 +10,13 @@ public class SessionControl<T>
 {
     private var session: StreamingSession<T>?
 
-    init() {}
+    public init() {}
 
     func setSession(_ session: StreamingSession<T>) {
         self.session = session
     }
 
-    func cancel() {
+    public func cancel() {
         session?.cancel()
         session = nil
     }
