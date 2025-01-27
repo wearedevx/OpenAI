@@ -129,13 +129,23 @@ public final class OpenAI: OpenAIProtocol {
         performRequest(request: JSONRequest<ChatResult>(body: query, url: url), completion: completion)
     }
 
-    public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) {
+    public func chatsStream(
+        query: ChatQuery,
+        control: SessionControl<ChatStreamResult>? = nil,
+        onResult: @escaping (Result<ChatStreamResult, Error>) -> Void,
+        completion: ((Error?) -> Void)?
+    ) {
         guard let url = buildURL(path: .chats) else {
             completion?(OpenAIError.invalidURL)
             return
         }
 
-        performStreamingRequest(request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: url), onResult: onResult, completion: completion)
+        performStreamingRequest(
+            request: JSONRequest<ChatStreamResult>(body: query.makeStreamable(), url: url),
+            control: control,
+            onResult: onResult,
+            completion: completion
+        )
     }
 
     public func edits(query: EditsQuery, completion: @escaping (Result<EditsResult, Error>) -> Void) {
@@ -234,7 +244,12 @@ extension OpenAI {
         return nil
     }
 
-    func performStreamingRequest<ResultType: Codable>(request: any URLRequestBuildable, onResult: @escaping (Result<ResultType, Error>) -> Void, completion: ((Error?) -> Void)?) {
+    func performStreamingRequest<ResultType: Codable>(
+        request: any URLRequestBuildable,
+        control: SessionControl<ResultType>? = nil,
+        onResult: @escaping (Result<ResultType, Error>) -> Void,
+        completion: ((Error?) -> Void)?
+    ) {
         do {
             let request = try request.build(token: configuration.token,
                                             organizationIdentifier: configuration.organizationIdentifier,
@@ -242,6 +257,9 @@ extension OpenAI {
                                             siteURL: configuration.siteURL,
                                             timeoutInterval: configuration.timeoutInterval)
             let session = StreamingSession<ResultType>(urlRequest: request)
+
+            control?.setSession(session)
+
             session.onReceiveContent = { _, object in
                 onResult(.success(object))
             }
@@ -254,6 +272,8 @@ extension OpenAI {
             }
             session.perform()
             streamingSessions.append(session)
+
+            control?.cancel()
             return
         } catch {
             completion?(error)
