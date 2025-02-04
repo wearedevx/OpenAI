@@ -28,10 +28,14 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
     }()
 
     private var previousChunkBuffer = ""
-    private var dataTask: URLSessionDataTask?
+    private weak var dataTask: URLSessionDataTask?
 
     init(urlRequest: URLRequest) {
         self.urlRequest = urlRequest
+    }
+
+    deinit {
+        cancel()
     }
 
     func perform() {
@@ -42,12 +46,14 @@ final class StreamingSession<ResultType: Codable>: NSObject, Identifiable, URLSe
     }
 
     func cancel() {
+        urlSession.invalidateAndCancel()
         dataTask?.cancel()
         dataTask = nil
     }
 
     func urlSession(_: URLSession, task _: URLSessionTask, didCompleteWithError error: Error?) {
         onComplete?(self, error)
+        self.cancel()
     }
 
     func urlSession(_: URLSession, dataTask _: URLSessionDataTask, didReceive data: Data) {

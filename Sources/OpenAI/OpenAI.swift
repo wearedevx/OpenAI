@@ -273,7 +273,7 @@ extension OpenAI {
             session.perform()
             streamingSessions.append(session)
 
-            control?.cancel()
+//            control?.cancel()
             return
         } catch {
             completion?(error)
