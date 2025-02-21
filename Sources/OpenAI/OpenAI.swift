@@ -22,11 +22,6 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
         /// Optional OpenAI organization identifier. See https://platform.openai.com/docs/api-reference/authentication
         public let organizationIdentifier: String?
 
-        /// Optional OpenRouter classification. See https://openrouter.ai/docs/quick-start
-        public let appName: String?
-        /// Optional OpenRouter classification. See https://openrouter.ai/docs/quick-start
-        public let siteURL: String?
-
         /// API host. Set this property if you use some kind of proxy or your own server. Default is api.openai.com
         public let host: String
 
@@ -53,8 +48,6 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
         public init(
             token: String?,
             organizationIdentifier: String? = nil,
-            appName: String? = nil,
-            siteURL: String? = nil,
             host: String = "api.openai.com",
             port: Int = 443,
             scheme: String = "https",
@@ -65,8 +58,6 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
         ) {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
-            self.appName = appName
-            self.siteURL = siteURL
             self.host = host
             self.port = port
             self.scheme = scheme
