@@ -51,7 +51,7 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
             host: String = "api.openai.com",
             port: Int = 443,
             scheme: String = "https",
-            basePath: String = "",
+            basePath: String = "/v1",
             timeoutInterval: TimeInterval = 60.0,
             customHeaders: [String: String] = [:],
             parsingOptions: ParsingOptions = []
@@ -414,11 +414,11 @@ extension APIPath {
         static let runRetrieve = Assistants(stringValue: "/v1/threads/THREAD_ID/runs/RUN_ID")
         static let runRetrieveSteps = Assistants(stringValue: "/v1/threads/THREAD_ID/runs/RUN_ID/steps")
         static func runSubmitToolOutputs(threadId: String, runId: String) -> Assistants {
-            Assistants(stringValue: "/v1/threads/\(threadId)/runs/\(runId)/submit_tool_outputs")
+            Assistants(stringValue: "/threads/\(threadId)/runs/\(runId)/submit_tool_outputs")
         }
 
-        static let threadsMessages = Assistants(stringValue: "/v1/threads/THREAD_ID/messages")
-        static let files = Assistants(stringValue: "/v1/files")
+        static let threadsMessages = Assistants(stringValue: "/threads/THREAD_ID/messages")
+        static let files = Assistants(stringValue: "/files")
 
         let stringValue: String
     }
