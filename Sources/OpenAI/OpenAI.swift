@@ -10,8 +10,7 @@ import Foundation
     import FoundationNetworking
 #endif
 
-final public class OpenAI {
-
+public final class OpenAI {
     public struct Configuration {
         /// OpenAI API token. See https://platform.openai.com/docs/api-reference/authentication
         public let token: String
@@ -45,7 +44,18 @@ final public class OpenAI {
         /// Currently SDK sets such fields: Authorization, Content-Type, OpenAI-Organization.
         public let customHeaders: [String: String]
 
-        public init(token: String, organizationIdentifier: String? = nil, host: String = "api.openai.com", port: Int = 443, scheme: String = "https", basePath: String = "", timeoutInterval: TimeInterval = 60.0, customHeaders: [String: String] = [:]) {
+        public init(
+            token: String,
+            organizationIdentifier: String? = nil,
+            appName: String? = nil,
+            siteURL: String? = nil,
+            host: String = "api.openai.com",
+            port: Int = 443,
+            scheme: String = "https",
+            basePath: String = "",
+            timeoutInterval: TimeInterval = 60.0,
+            customHeaders: [String: String] = [:]
+        ) {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
             self.appName = appName
@@ -244,7 +254,7 @@ extension OpenAI {
             let request = try request.build(configuration: configuration)
             let session = StreamingSession<ResultType>(urlRequest: request)
             cancellable.session = session
-            session.onReceiveContent = {_, object in
+            session.onReceiveContent = { _, object in
                 onResult(.success(object))
             }
             session.onProcessingError = { _, error in
@@ -287,15 +297,15 @@ extension OpenAI {
 
     func makeDataTask<ResultType: Codable>(forRequest request: URLRequest, completion: @escaping (Result<ResultType, Error>) -> Void) -> URLSessionDataTaskProtocol {
         session.dataTask(with: request) { data, _, error in
-            if let error = error {
+            if let error {
                 return completion(.failure(error))
             }
-            guard let data = data else {
+            guard let data else {
                 return completion(.failure(OpenAIError.emptyData))
             }
             let decoder = JSONDecoder()
             do {
-                completion(.success(try decoder.decode(ResultType.self, from: data)))
+                try completion(.success(decoder.decode(ResultType.self, from: data)))
             } catch {
                 completion(.failure((try? decoder.decode(APIErrorResponse.self, from: data)) ?? error))
             }
@@ -309,7 +319,7 @@ extension OpenAI {
             .buildURL()
     }
 
-    func buildRunsURL(path: String, threadId: String, before: String? = nil) -> URL {
+    func buildRunsURL(path: String, threadId: String, before _: String? = nil) -> URL {
         RunsURLBuilder(configuration: configuration, path: .init(stringValue: path), threadId: threadId)
             .buildURL()
     }
@@ -338,6 +348,7 @@ extension APIPath {
         static func runSubmitToolOutputs(threadId: String, runId: String) -> Assistants {
             Assistants(stringValue: "/v1/threads/\(threadId)/runs/\(runId)/submit_tool_outputs")
         }
+
         static let threadsMessages = Assistants(stringValue: "/v1/threads/THREAD_ID/messages")
         static let files = Assistants(stringValue: "/v1/files")
 
