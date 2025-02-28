@@ -45,16 +45,20 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
 
         public let parsingOptions: ParsingOptions
 
+        /// Query string params to append to the URL
+        public let queryStringParams: [String: String]
+
         public init(
             token: String?,
             organizationIdentifier: String? = nil,
             host: String = "api.openai.com",
             port: Int = 443,
             scheme: String = "https",
-            basePath: String = "/v1",
+            basePath: String = "",
             timeoutInterval: TimeInterval = 60.0,
             customHeaders: [String: String] = [:],
-            parsingOptions: ParsingOptions = []
+            parsingOptions: ParsingOptions = [],
+            queryStringParams: [String: String] = [:]
         ) {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
@@ -65,6 +69,7 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
             self.timeoutInterval = timeoutInterval
             self.customHeaders = customHeaders
             self.parsingOptions = parsingOptions
+            self.queryStringParams = queryStringParams
         }
     }
 
