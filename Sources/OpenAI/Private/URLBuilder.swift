@@ -7,7 +7,7 @@
 
 import Foundation
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 protocol URLBuilder {
@@ -27,9 +27,23 @@ struct DefaultURLBuilder: URLBuilder {
     
     func buildURL() -> URL {
         var components = URLComponents.components(perConfiguration: configuration, path: path)
-        
+
+        if configuration.queryStringParams.count > 0 {
+            if components.queryItems == nil {
+                components.queryItems = []
+            }
+
+            for queryItems in configuration.queryStringParams {
+                components.queryItems?.append(URLQueryItem(name: queryItems.0, value: queryItems.1))
+            }
+        }
+
         if let after {
-            components.queryItems = [URLQueryItem(name: "after", value: after)]
+            if components.queryItems == nil {
+                components.queryItems = []
+            }
+            
+            components.queryItems?.append(URLQueryItem(name: "after", value: after))
         }
         
         return components.urlSafe
@@ -98,5 +112,3 @@ struct RunRetrieveURLBuilder: URLBuilder {
         return components.urlSafe
     }
 }
-
-

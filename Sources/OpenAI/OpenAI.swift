@@ -39,6 +39,9 @@ public final class OpenAI {
         /// Currently SDK sets such fields: Authorization, Content-Type, OpenAI-Organization.
         public let customHeaders: [String: String]
 
+        /// Query string params to append to the URL
+        public let queryStringParams: [String: String]
+
         public init(
             token: String,
             organizationIdentifier: String? = nil,
@@ -47,7 +50,8 @@ public final class OpenAI {
             scheme: String = "https",
             basePath: String = "/v1",
             timeoutInterval: TimeInterval = 60.0,
-            customHeaders: [String: String] = [:]
+            customHeaders: [String: String] = [:],
+            queryStringParams: [String: String] = [:]
         ) {
             self.token = token
             self.organizationIdentifier = organizationIdentifier
@@ -57,6 +61,7 @@ public final class OpenAI {
             self.basePath = basePath
             self.timeoutInterval = timeoutInterval
             self.customHeaders = customHeaders
+            self.queryStringParams = queryStringParams
         }
     }
 
