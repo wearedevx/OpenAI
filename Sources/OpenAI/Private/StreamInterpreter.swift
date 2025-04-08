@@ -46,7 +46,7 @@ class StreamInterpreter<ResultType: Codable> {
 
             // Get JSON object
             let jsonData = line
-                .components(separatedBy: "data:")
+                .components(separatedBy: "data: ")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { $0.isEmpty == false }
             jsonObjects.append(contentsOf: jsonData)
