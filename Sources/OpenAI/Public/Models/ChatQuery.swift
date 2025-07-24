@@ -243,48 +243,48 @@ public struct ChatQuery: Equatable, Codable, Streamable, Sendable {
         public var role: Role {
             switch self {
             case let .system(systemMessage):
-                return systemMessage.role
+                systemMessage.role
             case let .developer(developerMessage):
-                return developerMessage.role
+                developerMessage.role
             case let .user(userMessage):
-                return userMessage.role
+                userMessage.role
             case let .assistant(assistantMessage):
-                return assistantMessage.role
+                assistantMessage.role
             case let .tool(toolMessage):
-                return toolMessage.role
+                toolMessage.role
             }
         }
 
         public var name: String? {
             switch self {
             case let .system(systemMessage):
-                return systemMessage.name
+                systemMessage.name
             case let .developer(developerMessage):
-                return developerMessage.name
+                developerMessage.name
             case let .user(userMessage):
-                return userMessage.name
+                userMessage.name
             case let .assistant(assistantMessage):
-                return assistantMessage.name
+                assistantMessage.name
             default:
-                return nil
+                nil
             }
         }
 
         public var toolCallId: String? {
             switch self {
             case let .tool(toolMessage):
-                return toolMessage.toolCallId
+                toolMessage.toolCallId
             default:
-                return nil
+                nil
             }
         }
 
         public var toolCalls: [Self.AssistantMessageParam.ToolCallParam]? {
             switch self {
             case let .assistant(assistantMessage):
-                return assistantMessage.toolCalls
+                assistantMessage.toolCalls
             default:
-                return nil
+                nil
             }
         }
 
@@ -303,24 +303,28 @@ public struct ChatQuery: Equatable, Codable, Streamable, Sendable {
                 } else {
                     return nil
                 }
+
             case .developer:
                 if let content {
                     self = .developer(.init(content: .textContent(content), name: name))
                 } else {
                     return nil
                 }
+
             case .user:
                 if let content {
                     self = .user(.init(content: .string(content), name: name))
                 } else {
                     return nil
                 }
+
             case .assistant:
                 if let content {
                     self = .assistant(.init(content: .textContent(content), name: name, toolCalls: toolCalls))
                 } else {
                     self = .assistant(.init(content: nil, name: name, toolCalls: toolCalls))
                 }
+
             case .tool:
                 if let content, let toolCallId {
                     self = .tool(.init(content: .textContent(content), toolCallId: toolCallId))
@@ -542,9 +546,9 @@ public struct ChatQuery: Equatable, Codable, Streamable, Sendable {
                 public var string: String? {
                     switch self {
                     case let .string(string):
-                        return string
+                        string
                     default:
-                        return nil
+                        nil
                     }
                 }
 
@@ -995,13 +999,13 @@ public struct ChatQuery: Equatable, Codable, Streamable, Sendable {
         public static func == (lhs: ResponseFormat, rhs: ResponseFormat) -> Bool {
             switch (lhs, rhs) {
             case (.text, .text):
-                return true
+                true
             case (.jsonObject, .jsonObject):
-                return true
+                true
             case let (.jsonSchema(lhsFormat), .jsonSchema(rhsFormat)):
-                return lhsFormat == rhsFormat
+                lhsFormat == rhsFormat
             default:
-                return false
+                false
             }
         }
 
@@ -1083,13 +1087,16 @@ public struct ChatQuery: Equatable, Codable, Streamable, Sendable {
             case .none:
                 var container = encoder.singleValueContainer()
                 try container.encode(CodingKeys.none.rawValue)
+
             case .auto:
                 var container = encoder.singleValueContainer()
                 try container.encode(CodingKeys.auto.rawValue)
+
             case let .function(name):
                 var container = encoder.container(keyedBy: Self.ChatCompletionFunctionCallNameParam.CodingKeys.self)
                 try container.encode("function", forKey: .type)
                 try container.encode(["name": name], forKey: .function)
+
             case .required:
                 var container = encoder.singleValueContainer()
                 try container.encode(CodingKeys.required.rawValue)
