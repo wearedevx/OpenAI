@@ -58,10 +58,10 @@ class StreamInterpreter<ResultType: Codable> {
             return
         }
 
-        try jsonObjects.enumerated().forEach { index, jsonContent in
-            guard jsonContent != streamingCompletionMarker, !jsonContent.isEmpty else {
-                return
-            }
+        while !jsonObjects.isEmpty {
+            let jsonContent = jsonObjects.removeFirst()
+            guard jsonContent != streamingCompletionMarker, !jsonContent.isEmpty else { continue }
+
             guard let jsonData = jsonContent.data(using: .utf8) else {
                 throw StreamingError.unknownContent
             }
@@ -73,13 +73,24 @@ class StreamInterpreter<ResultType: Codable> {
                 if let decoded = try? decoder.decode(APIErrorResponse.self, from: jsonData) {
                     throw decoded
                 }
-                // if that is not the last chunk, this is probably a partial
-                // JSON object
-                else if index != jsonObjects.count - 1 {
+                // This is a partial JSON object, prepend it to the next
+                // object in the queue
+                else if !jsonObjects.isEmpty {
+                    jsonObjects[0] = jsonContent + jsonObjects[0]
+                }
+                // This is the last object in the chunk and parsing failed:
+                // The chunk ended in a partail JSON object
+                else if jsonObjects.isEmpty {
                     previousChunkBuffer = "data: \(jsonContent)" // Chunk ends in a partial JSON
                 } else {
                     throw error
                 }
+            }
+        }
+
+        try jsonObjects.enumerated().forEach { _, jsonContent in
+            guard jsonContent != streamingCompletionMarker, !jsonContent.isEmpty else {
+                return
             }
         }
     }
