@@ -72,7 +72,10 @@ class StreamInterpreter<ResultType: Codable> {
             } catch {
                 if let decoded = try? decoder.decode(APIErrorResponse.self, from: jsonData) {
                     throw decoded
-                } else if index == jsonObjects.count - 1 {
+                }
+                // if that is not the last chunk, this is probably a partial
+                // JSON object
+                else if index != jsonObjects.count - 1 {
                     previousChunkBuffer = "data: \(jsonContent)" // Chunk ends in a partial JSON
                 } else {
                     throw error
