@@ -12,21 +12,21 @@ import Foundation
 class StreamInterpreter<ResultType: Codable> {
     private let streamingCompletionMarker = "[DONE]"
     private var previousChunkBuffer = ""
-    
+
     var onEventDispatched: ((ResultType) -> Void)?
-    
+
     func processData(_ data: Data) throws {
         let decoder = JSONDecoder()
         if let decoded = try? decoder.decode(APIErrorResponse.self, from: data) {
             throw decoded
         }
-        
+
         guard let stringContent = String(data: data, encoding: .utf8) else {
             throw StreamingError.unknownContent
         }
         try processJSON(from: stringContent)
     }
-    
+
     private func processJSON(from stringContent: String) throws {
         if stringContent.isEmpty {
             return
@@ -40,26 +40,26 @@ class StreamInterpreter<ResultType: Codable> {
 
         var jsonObjects: [String] = []
         for line in chunkLines {
-
             // Skip comments
             if line.starts(with: ":") { continue }
 
             // Get JSON object
             let jsonData = line
-                .components(separatedBy: "data: ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .split(separator: "data: ", maxSplits: 1, omittingEmptySubsequences: true)
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { $0.isEmpty == false }
             jsonObjects.append(contentsOf: jsonData)
         }
 
         previousChunkBuffer = ""
-        
+
         guard jsonObjects.isEmpty == false, jsonObjects.first != streamingCompletionMarker else {
             return
         }
-        
-        try jsonObjects.enumerated().forEach { (index, jsonContent)  in
-            guard jsonContent != streamingCompletionMarker && !jsonContent.isEmpty else {
+
+        try jsonObjects.enumerated().forEach { index, jsonContent in
+            guard jsonContent != streamingCompletionMarker, !jsonContent.isEmpty else {
                 return
             }
             guard let jsonData = jsonContent.data(using: .utf8) else {
