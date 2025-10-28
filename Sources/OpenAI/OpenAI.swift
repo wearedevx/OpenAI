@@ -54,7 +54,7 @@ public final class OpenAI: OpenAIProtocol, @unchecked Sendable {
             host: String = "api.openai.com",
             port: Int = 443,
             scheme: String = "https",
-            basePath: String = "",
+            basePath: String = "/v1",
             timeoutInterval: TimeInterval = 60.0,
             customHeaders: [String: String] = [:],
             parsingOptions: ParsingOptions = [],
