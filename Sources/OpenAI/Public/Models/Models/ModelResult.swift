@@ -16,7 +16,7 @@ public struct ModelResult: Codable, Equatable, Sendable {
     /// The object type, which is always "model".
     public let object: String
     /// The organization that owns the model.
-    public let ownedBy: String
+    public let ownedBy: String?
 
     public enum CodingKeys: String, CodingKey {
         case id
@@ -36,8 +36,19 @@ public struct ModelResult: Codable, Equatable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let parsingOptions = decoder.userInfo[.parsingOptions] as? ParsingOptions ?? []
         self.id = try container.decode(String.self, forKey: .id)
-        self.created = try container.decodeTimeInterval(forKey: .created, parsingOptions: parsingOptions)
+
+        if container.contains(.created) {
+            self.created = try container.decodeTimeInterval(forKey: .created, parsingOptions: parsingOptions)
+        } else {
+            self.created = nil
+        }
+
         self.object = try container.decode(String.self, forKey: .object, parsingOptions: parsingOptions, defaultValue: "model")
-        self.ownedBy = try container.decode(String.self, forKey: .ownedBy, parsingOptions: parsingOptions, defaultValue: "")
+
+        if container.contains(.ownedBy) {
+            self.ownedBy = try container.decode(String.self, forKey: .ownedBy, parsingOptions: parsingOptions, defaultValue: "")
+        } else {
+            self.ownedBy = nil
+        }
     }
 }
