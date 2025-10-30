@@ -85,6 +85,8 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
                    let contentLength = Int(contentLengthRaw)
                 {
                     completionHandler(.allow)
+                } else if let contentType = httpResponse.value(forHTTPHeaderField: "content-type") {
+                    completionHandler(.allow)
                 } else {
                     let error = OpenAIError.statusError(
                         response: httpResponse,
