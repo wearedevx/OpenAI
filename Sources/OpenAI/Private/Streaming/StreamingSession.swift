@@ -8,12 +8,12 @@
 import Foundation
 
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifiable, URLSessionDataDelegateProtocol, @unchecked Sendable {
     typealias ResultType = Interpreter.ResultType
-    
+
     private let urlSessionFactory: URLSessionFactory
     private let urlRequest: URLRequest
     private let interpreter: Interpreter
@@ -23,6 +23,8 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
     private let onReceiveContent: (@Sendable (StreamingSession, ResultType) -> Void)?
     private let onProcessingError: (@Sendable (StreamingSession, Error) -> Void)?
     private let onComplete: (@Sendable (StreamingSession, Error?) -> Void)?
+
+    private var status: Int = 200
 
     init(
         urlSessionFactory: URLSessionFactory = FoundationURLSessionFactory(),
@@ -47,39 +49,49 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
         super.init()
         subscribeToParser()
     }
-    
+
     func makeSession() -> PerformableSession & InvalidatableSession {
         let urlSession = urlSessionFactory.makeUrlSession(delegate: self)
         return DataTaskPerformingURLSession(urlRequest: urlRequest, urlSession: urlSession)
     }
-    
-    func urlSession(_ session: any URLSessionProtocol, task: any URLSessionTaskProtocol, didCompleteWithError error: (any Error)?) {
+
+    func urlSession(_: any URLSessionProtocol, task _: any URLSessionTaskProtocol, didCompleteWithError error: (any Error)?) {
         executionSerializer.dispatch {
-            self.onComplete?(self,error)
+            self.onComplete?(self, error)
         }
     }
-    
-    func urlSession(_ session: any URLSessionProtocol, dataTask: any URLSessionDataTaskProtocol, didReceive data: Data) {
+
+    func urlSession(_: any URLSessionProtocol, dataTask: any URLSessionDataTaskProtocol, didReceive data: Data) {
         executionSerializer.dispatch {
             let data = self.middlewares.reduce(data) { current, middleware in
                 middleware.interceptStreamingData(request: dataTask.originalRequest, current)
             }
-            
+
             self.interpreter.processData(data)
         }
     }
 
     func urlSession(
-        _ session: URLSessionProtocol,
-        dataTask: URLSessionDataTaskProtocol,
+        _: URLSessionProtocol,
+        dataTask _: URLSessionDataTaskProtocol,
         didReceive response: URLResponse,
         completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
     ) {
         executionSerializer.dispatch {
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode >= 400 {
-                let error = OpenAIError.statusError(response: httpResponse, statusCode: httpResponse.statusCode)
-                self.onProcessingError?(self, error)
-                completionHandler(.cancel)
+                self.status = httpResponse.statusCode
+
+                if let contentLengthRaw = httpResponse.value(forHTTPHeaderField: "content-length"),
+                   let contentLength = Int(contentLengthRaw)
+                {
+                    completionHandler(.allow)
+                } else {
+                    let error = OpenAIError.statusError(
+                        response: httpResponse,
+                        statusCode: httpResponse.statusCode
+                    )
+                    self.onProcessingError?(self, error)
+                }
                 return
             }
             completionHandler(.allow)
