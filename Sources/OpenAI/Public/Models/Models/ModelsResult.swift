@@ -14,15 +14,15 @@ public struct ModelsResult: Codable, Equatable, Sendable {
     /// The object type, which is always `list`
     public let object: String
 
-    public init(data: [ModelResult], object: String) {
+    public init(data: [ModelResult]) {
         self.data = data
-        self.object = object
+        self.object = "list"
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let parsingOptions = decoder.userInfo[.parsingOptions] as? ParsingOptions ?? []
         data = try container.decode([ModelResult].self, forKey: .data)
-        object = try container.decode(String.self, forKey: .object, parsingOptions: parsingOptions, defaultValue: "list")
+        object = "list"
     }
 }

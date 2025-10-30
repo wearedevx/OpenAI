@@ -25,10 +25,10 @@ public struct ModelResult: Codable, Equatable, Sendable {
         case ownedBy = "owned_by"
     }
     
-    public init(id: String, created: TimeInterval, object: String, ownedBy: String) {
+    public init(id: String, created: TimeInterval, ownedBy: String) {
         self.id = id
         self.created = created
-        self.object = object
+        self.object = "model"
         self.ownedBy = ownedBy
     }
     
@@ -43,7 +43,7 @@ public struct ModelResult: Codable, Equatable, Sendable {
             self.created = nil
         }
 
-        self.object = try container.decode(String.self, forKey: .object, parsingOptions: parsingOptions, defaultValue: "model")
+        self.object = "model"
 
         if container.contains(.ownedBy) {
             self.ownedBy = try container.decode(String.self, forKey: .ownedBy, parsingOptions: parsingOptions, defaultValue: "")
