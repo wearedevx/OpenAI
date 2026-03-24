@@ -97,6 +97,14 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
                         completionHandler(.allow)
                     }
                 } else if let contentType = httpResponse.value(forHTTPHeaderField: "content-type") {
+                    if contentType.starts(with: "text/plain;") {
+                        let error = OpenAIError.statusError(
+                            response: httpResponse,
+                            statusCode: httpResponse.statusCode
+                        )
+                        self.onProcessingError?(self, error)
+                        return
+                    }
                     completionHandler(.allow)
                 } else {
                     let error = OpenAIError.statusError(
