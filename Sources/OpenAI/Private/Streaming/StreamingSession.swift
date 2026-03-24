@@ -16,6 +16,7 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
 
     private let urlSessionFactory: URLSessionFactory
     private let urlRequest: URLRequest
+    private var htttpURLResponse: HTTPURLResponse?
     private let interpreter: Interpreter
     private let sslDelegate: SSLDelegateProtocol?
     private let middlewares: [OpenAIMiddleware]
@@ -57,6 +58,11 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
 
     func urlSession(_: any URLSessionProtocol, task _: any URLSessionTaskProtocol, didCompleteWithError error: (any Error)?) {
         executionSerializer.dispatch {
+            if error == nil, self.status > 400, let response = self.htttpURLResponse {
+                let error = OpenAIError.statusError(response: response, statusCode: self.status)
+                self.onProcessingError?(self, error)
+                return
+            }
             self.onComplete?(self, error)
         }
     }
@@ -79,32 +85,33 @@ final class StreamingSession<Interpreter: StreamInterpreter>: NSObject, Identifi
     ) {
         executionSerializer.dispatch {
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode >= 400 {
+                self.htttpURLResponse = httpResponse
                 self.status = httpResponse.statusCode
 
                 if let contentLengthRaw = httpResponse.value(forHTTPHeaderField: "content-length"),
                    let contentLength = Int(contentLengthRaw)
                 {
-                    if contentLength > 0, let contentType = httpResponse.value(forHTTPHeaderField: "content-type"),
-                       contentType.starts(with: "text/plain;")
-                    {
-                        let error = OpenAIError.statusError(
-                            response: httpResponse,
-                            statusCode: httpResponse.statusCode
-                        )
-                        self.onProcessingError?(self, error)
-                        return
-                    } else {
-                        completionHandler(.allow)
-                    }
+                    // if contentLength > 0, let contentType = httpResponse.value(forHTTPHeaderField: "content-type"),
+                    //    contentType.starts(with: "text/plain;")
+                    // {
+                    //     let error = OpenAIError.statusError(
+                    //         response: httpResponse,
+                    //         statusCode: httpResponse.statusCode
+                    //     )
+                    //     self.onProcessingError?(self, error)
+                    //     return
+                    // } else {
+                    completionHandler(.allow)
+                    // }
                 } else if let contentType = httpResponse.value(forHTTPHeaderField: "content-type") {
-                    if contentType.starts(with: "text/plain;") {
-                        let error = OpenAIError.statusError(
-                            response: httpResponse,
-                            statusCode: httpResponse.statusCode
-                        )
-                        self.onProcessingError?(self, error)
-                        return
-                    }
+                    // if contentType.starts(with: "text/plain;") {
+                    //     let error = OpenAIError.statusError(
+                    //         response: httpResponse,
+                    //         statusCode: httpResponse.statusCode
+                    //     )
+                    //     self.onProcessingError?(self, error)
+                    //     return
+                    // }
                     completionHandler(.allow)
                 } else {
                     let error = OpenAIError.statusError(
