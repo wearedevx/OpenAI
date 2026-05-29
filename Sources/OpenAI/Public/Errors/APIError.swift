@@ -17,17 +17,56 @@ public enum OpenAIError: DescribedError {
     case invalidURL
 }
 
+public struct AnthropicError: Decodable, Equatable {
+    public let type: String
+    public let message: String
+}
+
+public struct AnthropicResponseType: Decodable, Equatable {
+    public enum Kind: String, Decodable {
+        case error
+    }
+
+    public let type: Kind
+    public let error: AnthropicError?
+    public let requestId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case error
+        case requestId = "request_id"
+    }
+}
+
+public struct OpenRouterMetadata: Error, Decodable, Equatable {
+    public let raw: String
+    public let providerName: String
+
+    public enum CodingKeys: String, CodingKey {
+        case raw
+        case providerName = "provider_name"
+    }
+}
+
 public struct APIError: Error, Decodable, Equatable {
     public let message: String
     public let type: String?
     public let param: String?
     public let code: String?
+    public let metadata: OpenRouterMetadata?
 
-    public init(message: String, type: String, param: String?, code: String?) {
+    public init(
+        message: String,
+        type: String,
+        param: String?,
+        code: String?,
+        metadata: OpenRouterMetadata?
+    ) {
         self.message = message
         self.type = type
         self.param = param
         self.code = code
+        self.metadata = metadata
     }
 
     enum CodingKeys: CodingKey {
@@ -35,6 +74,7 @@ public struct APIError: Error, Decodable, Equatable {
         case type
         case param
         case code
+        case metadata
     }
 
     public init(from decoder: Decoder) throws {
@@ -60,11 +100,24 @@ public struct APIError: Error, Decodable, Equatable {
         } else {
             code = nil
         }
+
+        metadata = try? container.decodeIfPresent(OpenRouterMetadata.self, forKey: .metadata)
     }
 }
 
 extension APIError: LocalizedError {
     public var errorDescription: String? {
+        if let metadata {
+            let providerName = metadata.providerName
+            if providerName == "Anthropic",
+               let data = metadata.raw.data(using: .utf8),
+               let response = try? JSONDecoder().decode(AnthropicResponseType.self, from: data),
+            let error = response.error {
+                return "\(providerName): \(error.type): \(error.message)"
+            }
+            return "\(providerName): \(message)"
+        }
+
         return message
     }
 }
