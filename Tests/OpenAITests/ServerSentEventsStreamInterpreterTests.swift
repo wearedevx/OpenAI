@@ -83,6 +83,45 @@ struct ServerSentEventsStreamInterpreterTests {
         
         #expect(error is APIErrorResponse)
     }
+
+    @Test func unsupportedEventTypeReturnsLocalizedErrorWithEventDetails() async throws {
+        let interpreter = ServerSentEventsStreamInterpreter<ChatStreamResult>(
+            parsingOptions: []
+        )
+        var error: Error!
+
+        await withCheckedContinuation { continuation in
+            interpreter.setCallbackClosures { result in
+            } onError: { receivedError in
+                Task {
+                    await MainActor.run {
+                        error = receivedError
+                        continuation.resume()
+                    }
+                }
+            }
+
+            interpreter.processData(unsupportedEventType())
+        }
+
+        let localizedError = try #require(error as? LocalizedError)
+        let description = try #require(localizedError.errorDescription)
+
+        #expect(description.contains("progress"))
+        #expect(description.contains("Loading model"))
+        #expect(description.contains("ChatStreamResult"))
+        #expect(error.localizedDescription == description)
+    }
+
+    @Test func streamingErrorsReturnLocalizedDescriptions() throws {
+        let unknownContent = StreamingError.unknownContent
+        let emptyContent = StreamingError.emptyContent
+
+        #expect(unknownContent.localizedDescription.contains("Unable to decode streaming content"))
+        #expect(unknownContent.localizedDescription.contains("OpenAI-compatible"))
+        #expect(emptyContent.localizedDescription.contains("Received empty streaming content"))
+        #expect(emptyContent.localizedDescription.contains("OpenAI-compatible"))
+    }
     
     private func chatCompletionChunk() -> Data {
         MockServerSentEvent.chatCompletionChunk()
@@ -100,6 +139,11 @@ struct ServerSentEventsStreamInterpreterTests {
     private func chatCompletionError() -> Data {
         MockServerSentEvent.chatCompletionError()
     }
+
+    private func unsupportedEventType() -> Data {
+        "event: progress\ndata: {\"message\":\"Loading model\"}\n\n".data(using: .utf8)!
+    }
+
 }
 
 private actor ChatStreamResultsActor {

@@ -20,8 +20,30 @@ final class ServerSentEventsStreamInterpreter <ResultType: Codable & Sendable>: 
     private var onError: ((Error) -> Void)?
     private let parsingOptions: ParsingOptions
     
-    enum InterpeterError: Error {
-        case unhandledStreamEventType(String)
+    enum InterpreterError: DescribedError, CustomStringConvertible {
+        case unhandledStreamEventType(eventType: String, eventData: String, resultType: String)
+
+        var errorDescription: String? {
+            switch self {
+            case .unhandledStreamEventType(let eventType, let eventData, let resultType):
+                "Unhandled server-sent event type \"\(eventType)\" while decoding \(resultType). Expected \"message\" events containing JSON stream chunks or \"[DONE]\". Event data: \(eventData)"
+            }
+        }
+
+        var failureReason: String? {
+            switch self {
+            case .unhandledStreamEventType(let eventType, _, _):
+                "The server sent an SSE event named \"\(eventType)\", but this stream interpreter only supports default \"message\" events."
+            }
+        }
+
+        var recoverySuggestion: String? {
+            "Verify that the server is using an OpenAI-compatible chat completions streaming format. If you are using a local provider such as LM Studio, check whether it emits non-OpenAI SSE event names or provider status events."
+        }
+
+        var description: String {
+            errorDescription ?? String(describing: self)
+        }
     }
     
     init(parsingOptions: ParsingOptions) {
@@ -75,7 +97,24 @@ final class ServerSentEventsStreamInterpreter <ResultType: Codable & Sendable>: 
                 onError?(error)
             }
         default:
-            onError?(InterpeterError.unhandledStreamEventType(event.eventType))
+            onError?(
+                InterpreterError.unhandledStreamEventType(
+                    eventType: event.eventType,
+                    eventData: eventDataPreview(event),
+                    resultType: String(reflecting: ResultType.self)
+                )
+            )
         }
+    }
+
+    private func eventDataPreview(_ event: ServerSentEventsStreamParser.Event) -> String {
+        let maxLength = 500
+        let eventData = String(data: event.data, encoding: .utf8) ?? "<non-UTF-8 data: \(event.data.count) bytes>"
+
+        if eventData.count <= maxLength {
+            return eventData
+        }
+
+        return "\(eventData.prefix(maxLength))..."
     }
 }
